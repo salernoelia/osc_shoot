@@ -1,5 +1,7 @@
-# Simple shooting game, which uses the Gyro data to determine the direction
+# OSC Shoot
 ---
+
+Simple shooting game, which uses the Gyro data to determine the direction
 
 ```bash
 npm install

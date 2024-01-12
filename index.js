@@ -89,7 +89,7 @@ function shoot() {
     if (
       (lowerBound <= upperBound && (shotAngle >= lowerBound && shotAngle <= upperBound)) ||
       (lowerBound > upperBound && (shotAngle >= lowerBound || shotAngle <= upperBound))
-    ) {
+      ) {
       console.log("Hit!");
       targetPosition = getTarget().targetPosition; // Update the target after a successful hit
       console.log("New Target:", targetPosition);

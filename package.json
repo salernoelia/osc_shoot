@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "events": "^3.3.0",
     "osc": "^2.4.4"
   }
 }

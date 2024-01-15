@@ -7,11 +7,10 @@ const oscOut = new OSC({
 
 oscOut.open()
 
-
 setInterval(() => {
     const message = new OSC.Message('/target', Math.random());
-    const message2 = new OSC.Message('/pepejones', Math.random());
     oscOut.send(message);
+    const message2 = new OSC.Message('/pepejones', Math.random());
     oscOut.send(message2);
     console.log("message sent")
 }, 1000);

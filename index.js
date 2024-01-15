@@ -1,4 +1,5 @@
 const osc = require('osc');
+const OSC = require('osc-js')
 const say = require('say');
 var converter = require('number-to-words');
 
@@ -21,6 +22,12 @@ const oscServer = new osc.UDPPort({
   localPort: 50001,
 });
 
+const oscOut = new OSC({
+  plugin: new OSC.DatagramPlugin({ send: { port: 8000, host: '192.168.1.9' } })
+});
+
+oscOut.open()
+
 const gyroAddress = '/gyrosc/gyro';
 const buttonAddress = '/gyrosc/button';
 
@@ -35,13 +42,6 @@ function startOSCServer() {
         gyroData = oscMessage.args[2];
         mappedGyro = mapRange(gyroData, -3.15, 3.15, 0, 360);
         console.log("Your Rotation;", mappedGyro);
-  //       say.speak(`"${converter.toWords(mappedGyro)}"`, 'Junior', 1.02, (err) => {
-  //   if (err) {
-      
-  //     return console.error(err)
-  //   }
-  //   console.log('Text has been spoken.')
-  // })
       
       } else if (oscAddress === buttonAddress) {
         buttonData = oscMessage.args[0];
@@ -84,15 +84,17 @@ process.on('SIGTERM', handleExit);
 function getTarget() {
   const randomDecimal = Math.random();
   targetPosition = Math.floor(randomDecimal * 361);
-  abletonTargetPosition = mapRange(targetPosition, 0, 360, -180, 180);
+  abletonTargetPosition = mapRange(targetPosition, 0, 360, 0, 1);
   
   say.speak(`"Target is ${converter.toWords(targetPosition)}"`, 'Samantha', 1.02, (err) => {
     if (err) {
       
       return console.error(err)
     }
-    // console.log('Text has been spoken.')
   })
+
+  const message = new OSC.Message('/target', abletonTargetPosition);
+  oscOut.send(message);
   
   return { targetPosition, abletonTargetPosition };
 }
@@ -111,7 +113,7 @@ function shoot() {
       (lowerBound > upperBound && (shotAngle >= lowerBound || shotAngle <= upperBound))
       ) {
       console.log("Hit!");
-      say.speak(`"Target has been hit"`, 'Samantha', 1.02, (err) => {
+      say.speak(`"You hit the Cyber Threat!"`, 'Samantha', 1.02, (err) => {
     if (err) {
       
       return console.error(err)

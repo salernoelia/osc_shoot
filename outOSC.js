@@ -1,15 +1,17 @@
 const OSC = require('osc-js')
 
-const osc = new OSC({
-  plugin: new OSC.DatagramPlugin({ send: { port: 5311, host: '172.20.10.2' } })
+const oscOut = new OSC({
+  plugin: new OSC.DatagramPlugin({ send: { port: 8000, host: '192.168.1.9' } })
 });
 
 
-osc.open()
+oscOut.open()
 
 
 setInterval(() => {
     const message = new OSC.Message('/target', Math.random());
-    osc.send(message);
+    const message2 = new OSC.Message('/pepejones', Math.random());
+    oscOut.send(message);
+    oscOut.send(message2);
     console.log("message sent")
 }, 1000);

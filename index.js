@@ -1,10 +1,15 @@
 const osc = require('osc');
+const say = require('say');
+var converter = require('number-to-words');
+
 let mappedGyro = 0;
 let buttonPressed = false;
 let lastButtonPressTime = 0; // Timestamp of the last button press
 const cooldownDuration = 500; // 0.5 seconds cooldown duration in milliseconds
+let convertedToText;
+let targetPosition, abletonTargetPosition
 
-let target = getTarget().abletonTargetPosition; // Initialize the target
+
 
 function mapRange(value, from_min, from_max, to_min, to_max) {
   const mappedValue = (value - from_min) / (from_max - from_min) * (to_max - to_min) + to_min;
@@ -29,7 +34,15 @@ function startOSCServer() {
         // Handle gyro data
         gyroData = oscMessage.args[2];
         mappedGyro = mapRange(gyroData, -3.15, 3.15, 0, 360);
-        console.log({ type: 'gyro', value: mappedGyro });
+        console.log("Your Rotation;", mappedGyro);
+  //       say.speak(`"${converter.toWords(mappedGyro)}"`, 'Junior', 1.02, (err) => {
+  //   if (err) {
+      
+  //     return console.error(err)
+  //   }
+  //   console.log('Text has been spoken.')
+  // })
+      
       } else if (oscAddress === buttonAddress) {
         buttonData = oscMessage.args[0];
 
@@ -70,13 +83,20 @@ process.on('SIGTERM', handleExit);
 
 function getTarget() {
   const randomDecimal = Math.random();
-  const targetPosition = Math.floor(randomDecimal * 361);
+  targetPosition = Math.floor(randomDecimal * 361);
+  abletonTargetPosition = mapRange(targetPosition, 0, 360, -180, 180);
   
-  // Remap targetPosition from 0 to 360 to -180 to 180
-  const abletonTargetPosition = mapRange(targetPosition, 0, 360, -180, 180);
-
+  say.speak(`"Target is ${converter.toWords(targetPosition)}"`, 'Samantha', 1.02, (err) => {
+    if (err) {
+      
+      return console.error(err)
+    }
+    // console.log('Text has been spoken.')
+  })
+  
   return { targetPosition, abletonTargetPosition };
 }
+
 
 function shoot() {
   if (buttonPressed) {
@@ -91,10 +111,24 @@ function shoot() {
       (lowerBound > upperBound && (shotAngle >= lowerBound || shotAngle <= upperBound))
       ) {
       console.log("Hit!");
+      say.speak(`"Target has been hit"`, 'Samantha', 1.02, (err) => {
+    if (err) {
+      
+      return console.error(err)
+    }
+    // console.log('Text has been spoken.')
+  })
       targetPosition = getTarget().targetPosition; // Update the target after a successful hit
       console.log("New Target:", targetPosition);
     } else {
       console.log("Miss!");
+       say.speak(`"You missed!"`, 'Samantha', 1.02, (err) => {
+    if (err) {
+      
+      return console.error(err)
+    }
+    // console.log('Text has been spoken.')
+  })
     }
 
     buttonPressed = false;
@@ -103,9 +137,10 @@ function shoot() {
   }
 }
 
+getTarget();
 
-let { targetPosition, abletonTargetPosition } = getTarget();
 console.log("Target Position:", targetPosition);
 console.log("Ableton Target Position:", abletonTargetPosition);
+
 
 startOSCServer();

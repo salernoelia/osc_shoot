@@ -1,11 +1,11 @@
-const osc = require('osc');
-const OSC = require('osc-js');
-const say = require('say');
-const numberToWords = require('number-to-words');
+const osc = require("osc");
+const OSC = require("osc-js");
+const say = require("say");
+const numberToWords = require("number-to-words");
 
 // Constants
-const GYRO_ADDRESS = '/gyrosc/gyro';
-const BUTTON_ADDRESS = '/gyrosc/button';
+const GYRO_ADDRESS = "/gyrosc/gyro";
+const BUTTON_ADDRESS = "/gyrosc/button";
 const COOLDOWN_DURATION = 500;
 
 // Variables
@@ -15,18 +15,26 @@ let lastButtonPressTime = 0;
 let targetPosition, abletonTargetPosition;
 
 // OSC setup
-const oscServer = new osc.UDPPort({ localAddress: '0.0.0.0', localPort: 50001 });
-const oscOut = new OSC({ plugin: new OSC.DatagramPlugin({ send: { port: 8000, host: '192.168.1.9' } }) });
+const oscServer = new osc.UDPPort({
+  localAddress: "0.0.0.0",
+  localPort: 50001,
+});
+const oscOut = new OSC({
+  plugin: new OSC.DatagramPlugin({
+    send: { port: 8000, host: "192.168.1.26" },
+  }),
+});
 oscOut.open();
 
 // Utility functions
 const mapRange = (value, fromMin, fromMax, toMin, toMax) => {
-  const mappedValue = (value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin;
+  const mappedValue =
+    ((value - fromMin) / (fromMax - fromMin)) * (toMax - toMin) + toMin;
   return Math.max(Math.min(mappedValue, toMax), toMin);
 };
 
 const speakText = (text) => {
-  say.speak(`"${text}"`, 'Samantha', 1.02, (err) => {
+  say.speak(`"${text}"`, "Samantha", 1.02, (err) => {
     if (err) {
       console.error(err);
     }
@@ -42,7 +50,10 @@ const handleGyroData = (gyroData) => {
 const handleButtonData = (buttonData) => {
   const currentTime = Date.now();
 
-  if (buttonData === 1 && (currentTime - lastButtonPressTime) >= COOLDOWN_DURATION) {
+  if (
+    buttonData === 1 &&
+    currentTime - lastButtonPressTime >= COOLDOWN_DURATION
+  ) {
     buttonPressed = true;
     lastButtonPressTime = currentTime;
   }
@@ -56,7 +67,7 @@ const getTarget = () => {
 
   speakText(`Target is ${numberToWords.toWords(targetPosition)}`);
 
-  const message = new OSC.Message('/target', abletonTargetPosition);
+  const message = new OSC.Message("/target", abletonTargetPosition);
   oscOut.send(message);
 
   return { targetPosition, abletonTargetPosition };
@@ -68,8 +79,13 @@ const shoot = () => {
     const lowerBound = (targetPosition - 15 + 360) % 360;
     const upperBound = (targetPosition + 15) % 360;
 
-    if ((lowerBound <= upperBound && (shotAngle >= lowerBound && shotAngle <= upperBound)) ||
-      (lowerBound > upperBound && (shotAngle >= lowerBound || shotAngle <= upperBound))) {
+    if (
+      (lowerBound <= upperBound &&
+        shotAngle >= lowerBound &&
+        shotAngle <= upperBound) ||
+      (lowerBound > upperBound &&
+        (shotAngle >= lowerBound || shotAngle <= upperBound))
+    ) {
       console.log("Hit!");
       speakText("You hit the Cyber Threat!");
       targetPosition = getTarget().targetPosition;
@@ -87,9 +103,10 @@ const shoot = () => {
 
 // Initialization
 const startOSCServer = () => {
-  oscServer.on('message', (oscMessage) => {
+  oscServer.on("message", (oscMessage) => {
     try {
       const oscAddress = oscMessage.address;
+      console.log("OSC message received:", oscMessage);
 
       if (oscAddress === GYRO_ADDRESS) {
         handleGyroData(oscMessage.args[2]);
@@ -100,26 +117,25 @@ const startOSCServer = () => {
       if (buttonPressed) {
         shoot();
       }
-
     } catch (error) {
-      console.error('Error processing OSC message:', error);
+      console.error("Error processing OSC message:", error);
     }
   });
 
-  oscServer.on('error', (error) => {
-    console.error('OSC server error:', error);
+  oscServer.on("error", (error) => {
+    console.error("OSC server error:", error);
   });
 
   oscServer.open();
 };
 
 const handleExit = () => {
-  console.log('Closing OSC server');
+  console.log("Closing OSC server");
   oscServer.close(() => process.exit());
 };
 
-process.on('SIGINT', handleExit);
-process.on('SIGTERM', handleExit);
+process.on("SIGINT", handleExit);
+process.on("SIGTERM", handleExit);
 
 // Game start
 getTarget();
